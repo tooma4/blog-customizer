@@ -15,6 +15,8 @@ import {
 	fontSizeOptions,
 } from '../../constants/articleProps';
 import { Text } from '../text';
+import { useOutsideClickClose } from '../select/hooks/useOutsideClickClose';
+import clsx from 'clsx';
 
 type ChangeSettings = (newSettings: typeof defaultArticleState) => void;
 
@@ -24,7 +26,7 @@ export const ArticleParamsForm = ({
 	changeSettings: ChangeSettings;
 }) => {
 	//Состояние стрелки
-	const [arrowOpen, setArrowOpen] = useState(false);
+	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	//Состояние шрифта
 	const [stateFont, setStateFont] = useState(
 		defaultArticleState.fontFamilyOption
@@ -47,6 +49,7 @@ export const ArticleParamsForm = ({
 	);
 	//Ссылка на элемент aside
 	const sideBar = useRef(null);
+	const [stateButton, setStateButton] = useState(0);
 	//Функция сброса параметров формы
 	const handleResetForm = () => {
 		changeSettings(defaultArticleState);
@@ -72,19 +75,33 @@ export const ArticleParamsForm = ({
 	function handleClickForm(event: SyntheticEvent) {
 		event.stopPropagation();
 	}
+	// Хук для закрытия меню при клике за его пределами
+	useOutsideClickClose({
+		isOpen: isMenuOpen,
+		rootRef: sideBar,
+		onClose: () => {
+			setStateButton(stateButton + 1);
+		},
+		onChange: () => {
+			if (stateButton === 1) {
+				setIsMenuOpen(false);
+				setStateButton(0);
+			}
+		},
+	});
 	return (
 		<>
 			<ArrowButton
-				isOpen={arrowOpen}
+				isOpen={isMenuOpen}
 				click={() => {
-					setArrowOpen(!arrowOpen);
+					setIsMenuOpen(!isMenuOpen);
 				}}
 			/>
 			<aside
 				ref={sideBar}
-				className={`
-					${styles.container} 
-					${arrowOpen && styles.container_open}`}>
+				className={clsx(styles.container, {
+					[styles.container_open]: isMenuOpen,
+				})}>
 				<form
 					className={styles.form}
 					onClick={handleClickForm}
